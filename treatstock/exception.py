@@ -3,3 +3,6 @@ class ModelNotCreated(Exception):
 
 class NotLogin(Exception):
     pass
+
+class CsfrError(Exception):
+    pass

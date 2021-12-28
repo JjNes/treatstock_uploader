@@ -4,6 +4,8 @@ import json
 import requests
 import pickle
 
+import treatstock.exception as exception
+
 
 
 class Treatstock:
@@ -19,10 +21,10 @@ class Treatstock:
         if p:
             csfr_index = text.find(p)
             if csfr_index == -1:
-                raise Exception("Pattern not found")
+                raise exception.CsfrError
         match = re.search(r'name="_frontendCSRF" value="[\w\S]+">', text[csfr_index:]) 
         if not match:
-            raise Exception("CSFR not found")
+            raise exception.CsfrError
         csfr = match[0].strip('name="_frontendCSRF" value="').strip('">')
         return csfr
 
@@ -47,17 +49,14 @@ class Treatstock:
         self.is_login = True
         return True
     
-    def __add_file(self, csfr, filedata) -> str:
+    def __add_file(self, csfr, name, filedata) -> str:
         url = self.url + "/catalog/upload-model3d/add-file"
         data = {"_frontendCSRF": csfr}
         files = {"files": filedata}
         r = self.s.post(url, files=files, data=data)
         r_data = json.loads(r.json())
         if r.status_code == 200 and r_data["success"] == True:
-            match = re.search(r'\w+.\w+$', filedata.name) 
-            if match:
-                name = match[0]
-                return r_data["uuids"][name]
+            return r_data["uuids"][name]
         return None
 
     def load_from_dat(self, dat_file) -> bool:
@@ -72,8 +71,7 @@ class Treatstock:
     
     def create_model(self, files) -> str:
         if not self.is_login:
-            raise Exception("Not login")
-
+            raise exception.NotLogin
         url = self.url + "/upload?noredir=1"
         r = self.s.get(url)
         if r.status_code != 200:
