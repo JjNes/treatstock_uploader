@@ -11,7 +11,7 @@ log = logger.setup_custom_logger('root')
 
 from treatstock import Treatstock, Thing
 from thingiverse import Thingiverse
-import categories
+import categories as categories
 
 
 def save_task(items):
