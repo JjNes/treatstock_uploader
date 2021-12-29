@@ -3,3 +3,6 @@ env
 models
 __pycache__
 *.log
+build
+dist
+*.spec
