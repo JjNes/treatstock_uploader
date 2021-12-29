@@ -11,7 +11,7 @@ log = logger.setup_custom_logger('root')
 
 from treatstock import Treatstock, Thing
 from thingiverse import Thingiverse
-import categories
+import categories as categories
 
 
 def save_task(items):
@@ -42,7 +42,7 @@ with open('task.csv', 'r', newline='') as csvfile:
 
 for task in tasks:
     if task['status'] == '':
-        res = Thingiverse(row['username']).download(10)
+        res = Thingiverse(row['username']).download(3)
         log.info(f"Downloaded {res} models of {row['username']}")
         row['status'] = 'downloaded'
         save_task(tasks)
@@ -67,6 +67,7 @@ for task in tasks:
                 while not api.login(task['login'], task['password']):
                     log.error(f"User {task['login']} login failed!")
                     log.error(f"User {task['login']} try to login {retry}")
+                    api = Treatstock()
                     time.sleep(10)
                     retry -= 1
                     if retry == 0:
@@ -89,12 +90,17 @@ for task in tasks:
             model.id = id
             if id:
                 log.info(f"Model {m['name']} is uploaded") 
-                if not api.publish(model.publish()):
-                    continue
+                retry = 3
+                while not api.publish(model.publish()):
+                    time.sleep(5)
+                    retry -= 1
+                    if retry == 0:
+                        log.error(f"Model {m['name']} NOT published")  
+                        break
                 log.info(f"Model {m['name']} is published")         
                 m['status'] = True
             else:
                 log.error(f"Model {m['name']} NOT uploaded")
             shutil.rmtree(m['path'].strip(".zip"))
             save_model(model_file_path, mm)   
-            time.sleep(m['delay_min'] * 1000)
+            time.sleep(int(task['delay_min']) * 60)
