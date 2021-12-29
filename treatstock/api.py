@@ -3,6 +3,7 @@ import re
 import json
 import requests
 import pickle
+import time
 
 import treatstock.exception as exception
 
@@ -34,7 +35,7 @@ class Treatstock:
         r = self.s.get(login_url)
         if r.status_code != 200:
             return False
-        csfr = self.__get_csfr(r.text)
+        csfr = self.__get_csfr(r.text, '/user/login')
         data = {
             "_frontendCSRF": csfr,
             "LoginForm[redirectTo]": "",
@@ -43,13 +44,17 @@ class Treatstock:
             "LoginForm[rememberMe]": "0",
             "login-button": ""
         }
+        time.sleep(5)
         r = self.s.post(login_url, data=data)
         if r.status_code != 200:
+            return False
+        if r.url=='https://www.treatstock.com/user/login':
             return False
         self.is_login = True
         return True
     
-    def __add_file(self, csfr, name, filedata) -> str:
+    def __add_file(self, csfr, filedata) -> str:
+        name = os.path.basename(filedata.name)
         url = self.url + "/catalog/upload-model3d/add-file"
         data = {"_frontendCSRF": csfr}
         files = {"files": filedata}
@@ -68,8 +73,12 @@ class Treatstock:
             if model:
                 self.edit(model, thing["title"], "Test")
         return True
+
+    def create_from_model(self, model) -> str:
+        id = self.create_model(model.files)
+        return id
     
-    def create_model(self, files) -> str:
+    def create_model(self, files) -> int:
         if not self.is_login:
             raise exception.NotLogin
         url = self.url + "/upload?noredir=1"
@@ -79,10 +88,10 @@ class Treatstock:
         csfr = self.__get_csfr(r.text, "/upload/file-upload")
         uploaded_files_uuids = []
         for f in files:
-            ff = open(f, 'rb')
-            result = self.__add_file(csfr, ff)
-            if result:
-                uploaded_files_uuids.append(result)
+            with open(f, 'rb') as ff:
+                result = self.__add_file(csfr, ff)
+                if result:
+                    uploaded_files_uuids.append(result)
 
         data = {
             "uploadedFilesUuids": uploaded_files_uuids,
@@ -95,25 +104,15 @@ class Treatstock:
             return r.json()["model3dId"] 
         return None
 
-    def edit(self, id: int, title, description) -> bool:
+    def publish(self, model_data) -> bool:
         if not self.is_login:
             raise Exception("Not login")
-
-        url = self.url + "/my/model/edit/" + str(id)
+        url = self.url + "/my/model/edit/" + str(model_data['Model3dEditForm']['id'])
         r = self.s.get(url)
+        time.sleep(5)
         csfr = self.__get_csfr(r.text, "/my/model/edit")
         headers = {"X-CSRF-Token": csfr}
-        data = {
-            "Model3dEditForm": {
-                "description": description,
-                "title": title,
-                "id": id,
-                "pricePerPrint":"0.00",
-                "priceCurrency":"USD",
-                "submitForm":1
-            }
-        }
-        r = self.s.post(url, json=data, headers=headers)
-        if r.status_code!= 200:
-            return False
-        return True
+        r = self.s.post(url, json=model_data, headers=headers)
+        if r.status_code == 200 and r.json()['success']:
+            return True
+        return False
