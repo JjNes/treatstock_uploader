@@ -2,6 +2,7 @@ from enum import Enum
 
 import treatstock.exception as exception
 
+from PIL import Image
 
 class Currency(Enum):
     USD = "USD"
@@ -17,6 +18,17 @@ class Thing():
         self.description = description
         self.price_value = price_value
         self.price_currency = price_currency.value
+
+    def set_files(self, files) -> None:
+        for f in files:
+            if f.endswith(".png"):
+                img = Image.open(f).convert('L')
+                pix = img.load()
+                if pix[0, 0] != pix[0, 1]:
+                    continue
+            self.files.append(f)
+                    
+
 
     def to_dict(self) -> dict:
         if not id:

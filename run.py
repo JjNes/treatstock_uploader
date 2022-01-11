@@ -84,7 +84,7 @@ for task in tasks:
             result = [os.path.join(dp, f) for dp, dn, filenames in os.walk(m['path'].strip(".zip")) for f in filenames if os.path.splitext(f)[1].lower() in ext]
             model = Thing(m['name'], f"3D model of {m['name']}")
             model.set_category(categories.get(m['categories']))
-            model.files = result
+            model.set_files(result)
             # Upload
             id = api.create_from_model(model)
             model.id = id
