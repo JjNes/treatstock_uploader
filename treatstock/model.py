@@ -16,18 +16,20 @@ class Thing():
         self.price_currency = price_currency.value
         self.id = None
         self.files = None
+        self.bad = True
 
     def set_files(self, files) -> None:
         self.files = []
         for f in files:
-            #if f.endswith(".png") or f.endswith(".jpg"):
-            try:
+            if f.endswith(".png"):
+            #try:
                 img = Image.open(f).convert('L')
                 pix = img.load()
                 if pix[4, 4] == 200:
                     continue
-            except UnidentifiedImageError:
-                pass
+                self.bad = False
+            #except UnidentifiedImageError:
+            #    pass
             self.files.append(f)
                     
 

@@ -84,8 +84,6 @@ class Treatstock:
         return None
 
     def publish(self, model_data) -> bool:
-        if not self.is_login:
-            raise Exception("Not login")
         url = self.url + "/my/model/edit/" + str(model_data['Model3dEditForm']['id'])
         r = self.s.get(url)
         csfr = self.__get_csfr(r.text)

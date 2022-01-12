@@ -86,6 +86,10 @@ for task in tasks:
             model = Thing(m['name'], f"3D model of {m['name']}")
             model.set_category(categories.get(m['categories']))
             model.set_files(result)
+            if model.bad:
+                shutil.rmtree(m['path'].strip(".zip"))
+                save_model(model_file_path, mm) 
+                continue
             # Upload
             id = api.create_from_model(model)
             model.id = id
