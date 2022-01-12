@@ -30,6 +30,12 @@ def save_model(file_path, items):
         for item in items:
             writer.writerow(item)
 
+def download(task):
+    res = Thingiverse(task['username']).download(3)
+    log.info(f"Downloaded {res} models of {task['username']}")
+    task['status'] = 'downloaded'
+    save_task(tasks)
+
 
 tasks = []
 
@@ -42,14 +48,9 @@ with open('task.csv', 'r', newline='') as csvfile:
 
 for task in tasks:
     if task['status'] == '':
-        res = Thingiverse(task['username']).download(3)
-        log.info(f"Downloaded {res} models of {task['username']}")
-        task['status'] = 'downloaded'
-        save_task(tasks)
+        download(task)
 
     if task['status'] == 'downloaded':
-        api = Treatstock()
- 
         mm = []
         model_file_path = f"models/{task['username']}.csv"
         try:
@@ -59,7 +60,9 @@ for task in tasks:
                     mm.append(row)
         except FileNotFoundError:
             log.error(f"Models for user {task['username']} not downloaded")
-            continue
+            download(task)
+
+        api = Treatstock()
 
         for m in mm:
             if m['status'] == 'True':
@@ -67,19 +70,12 @@ for task in tasks:
                 continue
 
             if not api.is_login():
-                retry = 3
-                while not api.login(task['login'], task['password']):
-                    log.error(f"User {task['login']} login failed!")
-                    log.error(f"User {task['login']} try to login {retry}")
-                    api = Treatstock()
-                    time.sleep(10)
-                    retry -= 1
-                    if retry == 0:
-                        break
-            
-            if not api.is_login:
-                break
-
+                is_login = api.login(task['login'], task['password'])
+                if is_login:
+                    log.info(f"Login {task['login']} OK")
+                else:
+                    log.error(f"Login {task['login']} FALSE")
+                   
             # Extract
             with zipfile.ZipFile(m['path'], 'r') as archive:
                 archive.extractall(m['path'].strip(".zip"))

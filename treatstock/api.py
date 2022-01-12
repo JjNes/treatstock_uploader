@@ -20,7 +20,7 @@ class Treatstock:
     def __get_csfr(self, text: str, p: str = None) -> str:
         csfr_index = 0
         if p:
-            csfr_index = text.find(p)
+            csfr_index = text.find(f'action="{p}"')
             if csfr_index == -1:
                 raise exception.CsfrError
         match = re.search(r'name="_frontendCSRF" value="[\w\S]+">', text[csfr_index:]) 
@@ -32,8 +32,9 @@ class Treatstock:
     def is_login(self) -> bool:
         login_url = self.url + "/user/login"
         r = self.s.get(login_url)
-        pass
-
+        if r.url.endswith('/user/login'):
+            return False
+        return True
 
     def login(self, login: str, password: str) -> bool:
         login_url = self.url + "/user/login"
@@ -53,7 +54,7 @@ class Treatstock:
         r = self.s.post(login_url, data=data)
         if r.status_code != 200:
             return False
-        if r.url=='https://www.treatstock.com/user/login':
+        if r.url.endswith('/user/login'):
             return False
         return True
     
