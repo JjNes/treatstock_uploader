@@ -1,5 +1,5 @@
 from enum import Enum
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 
 class Currency(Enum):
@@ -20,11 +20,14 @@ class Thing():
     def set_files(self, files) -> None:
         self.files = []
         for f in files:
-            if f.endswith(".png"):
+            #if f.endswith(".png") or f.endswith(".jpg"):
+            try:
                 img = Image.open(f).convert('L')
                 pix = img.load()
                 if pix[4, 4] == 200:
                     continue
+            except UnidentifiedImageError:
+                pass
             self.files.append(f)
                     
 
