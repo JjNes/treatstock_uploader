@@ -12,7 +12,7 @@ import treatstock.exception as exception
 class Treatstock:
     s = requests.Session()
     url = "https://www.treatstock.com"
-    is_login = False
+
 
     def __init__(self) -> None:
         self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0"
@@ -28,6 +28,11 @@ class Treatstock:
             raise exception.CsfrError
         csfr = match[0].strip('name="_frontendCSRF" value="').strip('">')
         return csfr
+
+    def is_login(self) -> bool:
+        login_url = self.url + "/user/login"
+        r = self.s.get(login_url)
+        pass
 
 
     def login(self, login: str, password: str) -> bool:
@@ -50,7 +55,6 @@ class Treatstock:
             return False
         if r.url=='https://www.treatstock.com/user/login':
             return False
-        self.is_login = True
         return True
     
     def __add_file(self, csfr, filedata) -> str:

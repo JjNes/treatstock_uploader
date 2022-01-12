@@ -42,9 +42,9 @@ with open('task.csv', 'r', newline='') as csvfile:
 
 for task in tasks:
     if task['status'] == '':
-        res = Thingiverse(row['username']).download(3)
-        log.info(f"Downloaded {res} models of {row['username']}")
-        row['status'] = 'downloaded'
+        res = Thingiverse(task['username']).download(3)
+        log.info(f"Downloaded {res} models of {task['username']}")
+        task['status'] = 'downloaded'
         save_task(tasks)
 
     if task['status'] == 'downloaded':
@@ -52,17 +52,21 @@ for task in tasks:
  
         mm = []
         model_file_path = f"models/{task['username']}.csv"
-        with open(model_file_path, 'r', newline='') as csvfile:
-            ss = csv.DictReader(csvfile, delimiter=',')
-            for row in ss:
-                mm.append(row)
+        try:
+            with open(model_file_path, 'r', newline='') as csvfile:
+                ss = csv.DictReader(csvfile, delimiter=',')
+                for row in ss:
+                    mm.append(row)
+        except FileNotFoundError:
+            log.error(f"Models for user {task['username']} not downloaded")
+            continue
 
         for m in mm:
             if m['status'] == 'True':
                 log.info(f"{m['name']} is already upload")
                 continue
 
-            if not api.is_login:
+            if not api.is_login():
                 retry = 3
                 while not api.login(task['login'], task['password']):
                     log.error(f"User {task['login']} login failed!")
