@@ -20,7 +20,7 @@ class Treatstock:
     def __get_csfr(self, text: str, p: str = None) -> str:
         csfr_index = 0
         if p:
-            csfr_index = text.find(f'action="{p}"')
+            csfr_index = text.find(f'action="{p}')
             if csfr_index == -1:
                 raise exception.CsfrError
         match = re.search(r'name="_frontendCSRF" value="[\w\S]+">', text[csfr_index:]) 
