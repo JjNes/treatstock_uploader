@@ -2,31 +2,20 @@ import os
 import re
 import json
 import requests
-import pickle
-import time
 
 import treatstock.exception as exception
-
 
 
 class Treatstock:
     s = requests.Session()
     url = "https://www.treatstock.com"
 
-
     def __init__(self) -> None:
         self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0"
 
-    def __get_csfr(self, text: str, p: str = None) -> str:
-        csfr_index = 0
-        if p:
-            csfr_index = text.find(f'action="{p}')
-            if csfr_index == -1:
-                raise exception.CsfrError
-        match = re.search(r'name="_frontendCSRF" value="[\w\S]+">', text[csfr_index:]) 
-        if not match:
-            raise exception.CsfrError
-        csfr = match[0].strip('name="_frontendCSRF" value="').strip('">')
+    def __get_csfr(self, text: str) -> str:
+        match = re.search(r'<meta name="csrf-token" content="[\w\S]+">', text)
+        csfr = match[0].strip('<meta name="csrf-token" content="').strip('">')
         return csfr
 
     def is_login(self) -> bool:
@@ -41,7 +30,7 @@ class Treatstock:
         r = self.s.get(login_url)
         if r.status_code != 200:
             return False
-        csfr = self.__get_csfr(r.text, '/user/login')
+        csfr = self.__get_csfr(r.text)
         data = {
             "_frontendCSRF": csfr,
             "LoginForm[redirectTo]": "",
@@ -50,7 +39,6 @@ class Treatstock:
             "LoginForm[rememberMe]": "0",
             "login-button": ""
         }
-        time.sleep(5)
         r = self.s.post(login_url, data=data)
         if r.status_code != 200:
             return False
@@ -69,16 +57,6 @@ class Treatstock:
             return r_data["uuids"][name]
         return None
 
-    def load_from_dat(self, dat_file) -> bool:
-        things = pickle.load(open(dat_file, 'rb'))
-        ext =  [".stl", ".ply", ".obj", ".3mf", ".jpeg", ".png", ".gif", ".jpg"]
-        for thing in things:
-            result = [os.path.join(dp, f) for dp, dn, filenames in os.walk(thing["path"]) for f in filenames if os.path.splitext(f)[1].lower() in ext]
-            model = self.create_model(result)
-            if model:
-                self.edit(model, thing["title"], "Test")
-        return True
-
     def create_from_model(self, model) -> str:
         id = self.create_model(model.files)
         return id
@@ -90,7 +68,7 @@ class Treatstock:
         r = self.s.get(url)
         if r.status_code != 200:
             return None
-        csfr = self.__get_csfr(r.text, "/upload/file-upload")
+        csfr = self.__get_csfr(r.text)
         uploaded_files_uuids = []
         for f in files:
             with open(f, 'rb') as ff:
@@ -114,8 +92,7 @@ class Treatstock:
             raise Exception("Not login")
         url = self.url + "/my/model/edit/" + str(model_data['Model3dEditForm']['id'])
         r = self.s.get(url)
-        time.sleep(5)
-        csfr = self.__get_csfr(r.text, "/my/model/edit")
+        csfr = self.__get_csfr(r.text)
         headers = {"X-CSRF-Token": csfr}
         r = self.s.post(url, json=model_data, headers=headers)
         if r.status_code == 200 and r.json()['success']:
