@@ -75,6 +75,7 @@ for task in tasks:
                     log.info(f"Login {task['login']} OK")
                 else:
                     log.error(f"Login {task['login']} FALSE")
+                    break
                    
             # Extract
             with zipfile.ZipFile(m['path'], 'r') as archive:
@@ -90,15 +91,12 @@ for task in tasks:
             model.id = id
             if id:
                 log.info(f"Model {m['name']} is uploaded") 
-                retry = 3
-                while not api.publish(model.publish()):
-                    time.sleep(5)
-                    retry -= 1
-                    if retry == 0:
-                        log.error(f"Model {m['name']} NOT published")  
-                        break
-                log.info(f"Model {m['name']} is published")         
-                m['status'] = True
+                is_upload = api.publish(model.publish())
+                if not is_upload:
+                    log.error(f"Model {m['name']} NOT published")  
+                else:
+                    log.info(f"Model {m['name']} is published")         
+                    m['status'] = True
             else:
                 log.error(f"Model {m['name']} NOT uploaded")
             shutil.rmtree(m['path'].strip(".zip"))

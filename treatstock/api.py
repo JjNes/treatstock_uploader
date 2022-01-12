@@ -3,8 +3,6 @@ import re
 import json
 import requests
 
-import treatstock.exception as exception
-
 
 class Treatstock:
     s = requests.Session()
@@ -14,8 +12,8 @@ class Treatstock:
         self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0"
 
     def __get_csfr(self, text: str) -> str:
-        match = re.search(r'<meta name="csrf-token" content="[\w\S]+">', text)
-        csfr = match[0].strip('<meta name="csrf-token" content="').strip('">')
+        match = re.search(r'<meta name="csrf-token" content="[\w\S]{88}">', text)
+        csfr = match[0][33:-2]
         return csfr
 
     def is_login(self) -> bool:
@@ -39,10 +37,10 @@ class Treatstock:
             "LoginForm[rememberMe]": "0",
             "login-button": ""
         }
-        r = self.s.post(login_url, data=data)
-        if r.status_code != 200:
+        r_post = self.s.post(login_url, data=data)
+        if r_post.status_code != 200:
             return False
-        if r.url.endswith('/user/login'):
+        if r_post.url.endswith('/user/login'):
             return False
         return True
     
@@ -62,8 +60,6 @@ class Treatstock:
         return id
     
     def create_model(self, files) -> int:
-        if not self.is_login:
-            raise exception.NotLogin
         url = self.url + "/upload?noredir=1"
         r = self.s.get(url)
         if r.status_code != 200:
