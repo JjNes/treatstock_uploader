@@ -23,7 +23,7 @@ class Thing():
             if f.endswith(".png"):
                 img = Image.open(f).convert('L')
                 pix = img.load()
-                if pix[0, 0] != pix[0, 1]:
+                if pix[2, 2] == 200:
                     continue
             self.files.append(f)
                     
