@@ -21,9 +21,7 @@ if __name__ == '__main__':
     except:
         caption = None
     bot = telebot.TeleBot(token)
-    doc = open(file_path,"rb")
-    message = bot.send_document(chat_id, doc, caption=caption)
-    time.sleep(1)  
     bot.unpin_all_chat_messages(chat_id)
-    time.sleep(1) 
+    doc = open(file_path,"rb")  
+    message = bot.send_document(chat_id, doc, caption=caption)
     bot.pin_chat_message(chat_id, message.id)
