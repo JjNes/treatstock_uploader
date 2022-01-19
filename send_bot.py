@@ -21,8 +21,15 @@ if __name__ == '__main__':
     except:
         caption = None
     bot = telebot.TeleBot(token)
+
+    
     bot.unpin_all_chat_messages(chat_id)
     doc = open(file_path,"rb")  
     message = bot.send_document(chat_id, doc, caption=caption)
+    #message = bot.send_message(chat_id, "Test message")
     bot.pin_chat_message(chat_id, message.id)
-    
+
+    #@bot.message_handler()
+    #def d(message):
+    #    print(message.chat.id)
+    #bot.polling()
