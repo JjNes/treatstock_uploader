@@ -8,3 +8,4 @@ dist
 *.spec
 task.csv
 *.db
+.env

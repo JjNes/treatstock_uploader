@@ -21,14 +21,14 @@ class Thing(Model):
     def to_dict(self) -> dict:
         return {
             "Model3dEditForm": {
-                "description": f"3D model of {self.owner}",
-                "title": self.title,
-                "id": self.publish_id,
-                "pricePerPrint": 0.00,
-                "priceCurrency": "USD",
-                "submitForm":1,
                 "categoryId": self.category_id,
-                "submitMode": "publish"
+                "description": f"3D model of {self.owner}",       
+                "id": self.publish_id,
+                "priceCurrency": "USD",
+                "pricePerPrint": "0.00",   
+                "submitForm":1,
+                "submitMode": "publish",
+                "title": self.title
             }
         }
     

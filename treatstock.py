@@ -42,6 +42,7 @@ class Treatstock:
             return False
         if r_post.url.endswith('/user/login'):
             return False
+        self.url = r_post.url.strip('/')
         return True
     
     def __add_file(self, csfr, filedata) -> str:
@@ -85,8 +86,8 @@ class Treatstock:
 
     def publish(self, model_data) -> bool:
         url = self.url + "/my/model/edit/" + str(model_data['Model3dEditForm']['id'])
-        r = self.s.get(url)
-        csfr = self.__get_csfr(r.text)
+        rr = self.s.get(url)
+        csfr = self.__get_csfr(rr.text)
         headers = {"X-CSRF-Token": csfr}
         r = self.s.post(url, json=model_data, headers=headers)
         if r.status_code == 200 and r.json()['success']:
