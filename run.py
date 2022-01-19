@@ -13,8 +13,6 @@ from thingiverse import Thingiverse
 from model import Thing
 
 
-
-
 if __name__ == '__main__':
     Thing.create_table()
 
@@ -33,7 +31,7 @@ if __name__ == '__main__':
         username = task['username']
         api_thing = Thingiverse(username)
         log.info(f"Update list of {username} models")
-        api_thing.get_models()
+        #api_thing.get_models()
 
         api_tre = Treatstock()
 
@@ -75,7 +73,7 @@ if __name__ == '__main__':
                 else:
                     raise Exception(f"Model {m.title} NOT uploaded")
             except Exception as ex:
-                log.error(ex)
+                log.error(ex, exc_info=True)
 
             if files:
                 os.remove(files['image'])
