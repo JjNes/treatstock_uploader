@@ -9,10 +9,12 @@ class Treatstock:
     url = "https://www.treatstock.com"
 
     def __init__(self) -> None:
-        self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0"
+        self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64;"\
+            " x64; rv:94.0) Gecko/20100101 Firefox/94.0"
 
     def __get_csfr(self, text: str) -> str:
-        match = re.search(r'<meta name="csrf-token" content="[\w\S]{88}">', text)
+        match = re.search(
+            r'<meta name="csrf-token" content="[\w\S]{88}">', text)
         csfr = match[0][33:-2]
         return csfr
 
@@ -44,7 +46,7 @@ class Treatstock:
             return False
         self.url = r_post.url.strip('/')
         return True
-    
+
     def __add_file(self, csfr, filedata) -> str:
         name = os.path.basename(filedata.name)
         url = self.url + "/catalog/upload-model3d/add-file"
@@ -52,14 +54,14 @@ class Treatstock:
         files = {"files": filedata}
         r = self.s.post(url, files=files, data=data)
         r_data = json.loads(r.json())
-        if r.status_code == 200 and r_data["success"] == True:
+        if r.status_code == 200 and r_data["success"] is True:
             return r_data["uuids"][name]
         return None
 
     def create_from_model(self, model) -> str:
         id = self.create_model(model.files)
         return id
-    
+
     def create_model(self, files) -> int:
         url = self.url + "/upload?noredir=1"
         r = self.s.get(url)
