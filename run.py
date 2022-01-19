@@ -1,8 +1,6 @@
 import csv
 import logger
 import os
-import zipfile
-import shutil
 import time
 
 from PIL import Image
@@ -15,28 +13,25 @@ from thingiverse import Thingiverse
 from model import Thing
 
 
-
-
 if __name__ == '__main__':
     Thing.create_table()
 
-
-    tasks = []
-    if os.path.isfile('task.csv'):
+    try:
+        tasks = []
         with open('task.csv', 'r', newline='') as csvfile:
             task = csv.DictReader(csvfile, delimiter=',')
             for row in task:
                 tasks.append(row)
             log.info(f"Load {len(tasks)} tasks")
-    else:
-        log.error("task.csv not found!")
-        exit(0)
+    except:
+        raise Exception("task.csv not found!")
+        
 
     for task in tasks:
         username = task['username']
         api_thing = Thingiverse(username)
         log.info(f"Update list of {username} models")
-        api_thing.get_models()
+        #api_thing.get_models()
 
         api_tre = Treatstock()
 
@@ -78,7 +73,7 @@ if __name__ == '__main__':
                 else:
                     raise Exception(f"Model {m.title} NOT uploaded")
             except Exception as ex:
-                log.error(ex)
+                log.error(ex, exc_info=True)
 
             if files:
                 os.remove(files['image'])
