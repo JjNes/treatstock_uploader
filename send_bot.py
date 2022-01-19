@@ -1,3 +1,4 @@
+from email import message
 import os
 import sys
 import telebot
@@ -21,5 +22,6 @@ if __name__ == '__main__':
         caption = None
     bot = telebot.TeleBot(token)
     doc = open(file_path,"rb")
-    bot.send_document(chat_id, doc, caption=caption)
-    
+    message = bot.send_document(chat_id, doc, caption=caption)  
+    bot.unpin_all_chat_messages(chat_id)
+    bot.pin_chat_message(chat_id, message.id)

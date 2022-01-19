@@ -40,5 +40,5 @@ jobs:
       - name: Upload file to Telegram
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-        run: python send_bot.py dist/${{ matrix.artifact_name }}.exe ${{ secrets.CHAT_ID }} ${{ github.event.commits[0].message }}
+        run: python send_bot.py dist/${{ matrix.artifact_name }}.exe ${{ secrets.CHAT_ID }}
 
