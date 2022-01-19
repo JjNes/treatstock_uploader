@@ -80,14 +80,16 @@ class Treatstock:
             "isPlaceOrderState": 0,
             "isWidget": 1
         }
-        create_url = self.url + "/catalog/upload-model3d/create-model3d?noredir=1"
+        create_url = self.url + "/catalog/upload-model3d/"\
+            "create-model3d?noredir=1"
         r = self.s.post(create_url, json=data)
         if r.status_code == 200 and r.json()["success"]:
             return r.json()["model3dId"]
         return None
 
     def publish(self, model_data) -> bool:
-        url = self.url + f"/my/model/edit/{model_data['Model3dEditForm']['id']}"
+        url = self.url + \
+            f"/my/model/edit/{model_data['Model3dEditForm']['id']}"
         rr = self.s.get(url)
         csfr = self.__get_csfr(rr.text)
         headers = {"X-CSRF-Token": csfr}
