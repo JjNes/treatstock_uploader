@@ -31,7 +31,7 @@ if __name__ == '__main__':
         username = task['username']
         api_thing = Thingiverse(username)
         log.info(f"Update list of {username} models")
-        #api_thing.get_models()
+        api_thing.get_models()
 
         api_tre = Treatstock()
 
