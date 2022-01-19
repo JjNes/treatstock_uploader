@@ -35,61 +35,55 @@ if __name__ == '__main__':
     for task in tasks:
         username = task['username']
         api_thing = Thingiverse(username)
+        log.info(f"Update list of {username} models")
         api_thing.get_models()
-        api_thing.download()
 
         api_tre = Treatstock()
 
-        models = Thing.select().where((Thing.owner == username) & (Thing.status == 200))
+        models = Thing.select().where((Thing.owner == username) & (Thing.status == 0))
         for m in models:
-
-            with zipfile.ZipFile(f"models/{m.id}", 'r') as archive:
-                archive.extractall(f"models/{m.id}zip")
-
-            # Files
-            models_ext =  [".stl", ".ply", ".obj", ".3mf"]
-            img_ext =  [".jpeg", ".png", ".gif", ".jpg"]
-
-                
-            files = [os.path.join(dp, f) for dp, dn, filenames in os.walk(f"models/{m.id}zip") for f in filenames if os.path.splitext(f)[1].lower() in models_ext]
-            images = [os.path.join(dp, f) for dp, dn, filenames in os.walk(f"models/{m.id}zip") for f in filenames if os.path.splitext(f)[1].lower() in img_ext]
-
-            buf = []
-            for f in images:
-                img = Image.open(f).convert('L')
+            files = api_thing.download(m.id)
+            try:   
+                if not files:
+                    m.status = 404
+                    raise Exception(f"Model {m.title} is NOT downloaded")
+                log.info(f"Model {m.title} is downloaded")
+                # Check image
+                img = Image.open(files['image']).convert('L')
                 pix = img.load()
-                if pix[4, 4] == 200:
-                    continue
-                buf.append(f)
-            images = buf
+                if pix[4, 4] == 200: 
+                    m.status = 500
+                    raise Exception(f"Model {m.title} is BAD")
 
-            if len(images) == 0:
-                log.info(f"Model {m.title} is BAD")
-                shutil.rmtree(f"models/{m.id}zip")
-                m.status = 500
-                m.save()
-                continue
-
-            result = files + images
-            m.set_files(result)
-            
-            if not api_tre.is_login():
-                api_tre.login(task['login'], task['password'])
-                log.info("Login OK")
-     
-            id = api_tre.create_from_model(m)
-            if id:
-                m.publish_id = id
-                log.info(f"Model {m.title} is uploaded") 
-                is_upload = api_tre.publish(m.to_dict())
-                if not is_upload:
-                    log.error(f"Model {m.title} NOT published")  
+                # Join file to one list
+                files_to = [f for f in files['files']]
+                files_to.append(files['image'])
+                # Setup files to model
+                m.set_files(files_to)
+                # Login
+                if not api_tre.is_login():
+                    api_tre.login(task['login'], task['password'])
+                    log.info("Login OK")
+                # Upload model
+                id = api_tre.create_from_model(m)
+                if id:
+                    m.publish_id = id
+                    log.info(f"Model {m.title} is uploaded") 
+                    is_upload = api_tre.publish(m.to_dict())
+                    if not is_upload:
+                        raise Exception(f"Model {m.title} NOT published")
+                    else:
+                        log.info(f"Model {m.title} is published")         
+                        m.status = 202
                 else:
-                    log.info(f"Model {m.title} is published")         
-                    m.status = 202
-            else:
-                log.error(f"Model {m.title} NOT uploaded")
+                    raise Exception(f"Model {m.title} NOT uploaded")
+            except Exception as ex:
+                log.error(ex)
+
+            if files:
+                os.remove(files['image'])
+                for f in files['files']:
+                    os.remove(f)
             m.save()
-            shutil.rmtree(f"models/{m.id}zip")
             time.sleep(int(task['delay_min']) * 60)
             

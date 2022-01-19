@@ -9,7 +9,7 @@ def setup_custom_logger(name):
 
     file = logging.FileHandler("error.log")
     fileformat = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-    file.setLevel(logging.DEBUG)
+    file.setLevel(logging.ERROR)
     file.setFormatter(fileformat)
 
     logger = logging.getLogger(name)

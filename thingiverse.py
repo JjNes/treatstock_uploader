@@ -37,7 +37,8 @@ class Thingiverse:
                     "id": things['id'],
                     "title": things['name'],
                     "owner": self.username,
-                    "category_id": Categories(category)
+                    "category_id": Categories(category),
+                    "image": things['thumbnail'],
                 }
                 Thing.insert(**model_info).on_conflict_ignore().execute()
 
@@ -46,24 +47,36 @@ class Thingiverse:
             page += 1
         return 
 
-    def download(self) -> None:
-        things = Thing.select().where((Thing.owner == self.username) & (Thing.status == 0))
-        for thing in things:
-            url = f"https://www.thingiverse.com/thing:{thing.id}/zip"
-            zip = self.s.get(url)
-            if zip.status_code != 200:
-                log.warning(f"Can't download zip for model '{thing.title}' Code:{zip.status_code}")
-                thing.status = 404
-            else:
-                if not os.path.isdir('models'):
-                    os.mkdir('models')
-                open("models/" + str(thing.id), 'wb').write(zip.content)
-                thing.status = 200
-            thing.save()
+    def download(self, id: int):
+        thing = Thing.get_by_id(id)
+        r = self.s.get(thing.image)
+        if r.status_code != 200:
+            return None
+        if not os.path.isdir('models'):
+            os.mkdir('models')
+        open(f"models/{thing.id}.jpg", 'wb').write(r.content)
+        result = {
+            "image": f"models/{thing.id}.jpg",
+            "files": set()
+        }
+        files_url = f'https://api.thingiverse.com/things/{thing.id}/files'
+        r = self.s.get(files_url)
+        if r.status_code != 200:
+            return None
+        for file in r.json():
+            if not file['name'].endswith(".stl"):
+                continue
+            c = self.s.get(file['url'])
+            if c.status_code != 200:
+                continue
+            open(f"models/{file['name']}", 'wb').write(c.content)
+            result['files'].add(f"models/{file['name']}")
+        return result
 
 if __name__ == '__main__':
     Thing.create_table()
     api = Thingiverse("drewmoseley")
     api.get_models()
-    api.download()
+    things = Thing.select().where((Thing.owner == "drewmoseley") & (Thing.status == 0))
+    api.download(things[0].id)
     pass

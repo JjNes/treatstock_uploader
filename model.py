@@ -10,6 +10,7 @@ class Thing(Model):
     category_id = IntegerField(default=4462)
     status = IntegerField(default=0)
     owner = CharField()
+    image = CharField()
 
     class Meta:
         database = db
