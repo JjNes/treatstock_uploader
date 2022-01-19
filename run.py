@@ -1,8 +1,6 @@
 import csv
 import logger
 import os
-import zipfile
-import shutil
 import time
 
 from PIL import Image
@@ -20,17 +18,16 @@ from model import Thing
 if __name__ == '__main__':
     Thing.create_table()
 
-
-    tasks = []
-    if os.path.isfile('task.csv'):
+    try:
+        tasks = []
         with open('task.csv', 'r', newline='') as csvfile:
             task = csv.DictReader(csvfile, delimiter=',')
             for row in task:
                 tasks.append(row)
             log.info(f"Load {len(tasks)} tasks")
-    else:
-        log.error("task.csv not found!")
-        exit(0)
+    except:
+        raise Exception("task.csv not found!")
+        
 
     for task in tasks:
         username = task['username']
