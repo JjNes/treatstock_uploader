@@ -5,12 +5,12 @@ import time
 
 from PIL import Image
 
-log = logger.setup_custom_logger('root')
-
-
 from treatstock import Treatstock
 from thingiverse import Thingiverse
 from model import Thing
+
+
+log = logger.setup_custom_logger('root')
 
 
 if __name__ == '__main__':
@@ -23,9 +23,8 @@ if __name__ == '__main__':
             for row in task:
                 tasks.append(row)
             log.info(f"Load {len(tasks)} tasks")
-    except:
+    except Exception:
         raise Exception("task.csv not found!")
-        
 
     for task in tasks:
         username = task['username']
@@ -35,10 +34,11 @@ if __name__ == '__main__':
 
         api_tre = Treatstock()
 
-        models = Thing.select().where((Thing.owner == username) & (Thing.status == 0))
+        models = Thing.select().where(
+            (Thing.owner == username) & (Thing.status == 0))
         for m in models:
             files = api_thing.download(m.id)
-            try:   
+            try:
                 if not files:
                     m.status = 404
                     raise Exception(f"Model {m.title} is NOT downloaded")
@@ -46,7 +46,7 @@ if __name__ == '__main__':
                 # Check image
                 img = Image.open(files['image']).convert('L')
                 pix = img.load()
-                if pix[4, 4] == 200: 
+                if pix[4, 4] == 200:
                     m.status = 500
                     raise Exception(f"Model {m.title} is BAD")
 
@@ -63,12 +63,12 @@ if __name__ == '__main__':
                 id = api_tre.create_from_model(m)
                 if id:
                     m.publish_id = id
-                    log.info(f"Model {m.title} is uploaded") 
+                    log.info(f"Model {m.title} is uploaded")
                     is_upload = api_tre.publish(m.to_dict())
                     if not is_upload:
                         raise Exception(f"Model {m.title} NOT published")
                     else:
-                        log.info(f"Model {m.title} is published")         
+                        log.info(f"Model {m.title} is published")
                         m.status = 202
                 else:
                     raise Exception(f"Model {m.title} NOT uploaded")
@@ -81,4 +81,3 @@ if __name__ == '__main__':
                     os.remove(f)
             m.save()
             time.sleep(int(task['delay_min']) * 60)
-            
