@@ -1,21 +1,22 @@
 import os
 import logging
-from sqlite3 import IntegrityError
 import requests
-
 
 from model import Thing
 from categories import get as Categories
 
 
 log = logging.getLogger('root')
+
+
 class Thingiverse:
     auth_token = "56edfc79ecf25922b98202dd79a291aa"
     s = requests.Session()
 
     def __init__(self, username: str) -> None:
-        self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0"
-        self.s.headers["Authorization"] =  f"Bearer {self.auth_token}"
+        self.s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64;"\
+            " x64; rv:94.0) Gecko/20100101 Firefox/94.0"
+        self.s.headers["Authorization"] = f"Bearer {self.auth_token}"
         self.username = username
 
     def get_models(self) -> None:
@@ -45,7 +46,7 @@ class Thingiverse:
             if page * per_page >= total:
                 break
             page += 1
-        return 
+        return
 
     def download(self, id: int):
         thing = Thing.get_by_id(id)
@@ -66,17 +67,9 @@ class Thingiverse:
         for file in r.json():
             if not file['name'].endswith(".stl"):
                 continue
-            c = self.s.get(file['url'])
+            c = self.s.get(file['download_url'])
             if c.status_code != 200:
                 continue
             open(f"models/{file['name']}", 'wb').write(c.content)
             result['files'].add(f"models/{file['name']}")
         return result
-
-if __name__ == '__main__':
-    Thing.create_table()
-    api = Thingiverse("drewmoseley")
-    api.get_models()
-    things = Thing.select().where((Thing.owner == "drewmoseley") & (Thing.status == 0))
-    api.download(things[0].id)
-    pass

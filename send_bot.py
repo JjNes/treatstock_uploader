@@ -1,6 +1,5 @@
 import os
 import sys
-import time
 import telebot
 
 
@@ -10,26 +9,18 @@ if __name__ == '__main__':
         raise Exception("Bot token not found")
     try:
         file_path = sys.argv[1]
-    except:
+    except Exception:
         raise Exception("File argv no found")
     try:
         chat_id = sys.argv[2]
-    except:
+    except Exception:
         raise Exception("Chat ID argv no found")
     try:
         caption = sys.argv[3]
-    except:
+    except Exception:
         caption = None
     bot = telebot.TeleBot(token)
-
-    
     bot.unpin_all_chat_messages(chat_id)
-    doc = open(file_path,"rb")  
+    doc = open(file_path, "rb")
     message = bot.send_document(chat_id, doc, caption=caption)
-    #message = bot.send_message(chat_id, "Test message")
     bot.pin_chat_message(chat_id, message.id)
-
-    #@bot.message_handler()
-    #def d(message):
-    #    print(message.chat.id)
-    #bot.polling()
