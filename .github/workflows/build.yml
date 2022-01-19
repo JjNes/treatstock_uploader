@@ -42,4 +42,3 @@ jobs:
       - name: Upload file to Telegram
         run: python send_bot.py dist/${{ matrix.artifact_name }}.exe ${{ secrets.CHAT_ID }} ${{ github.ref }}
 
-        
