@@ -24,24 +24,25 @@ jobs:
         include:
           #- os: ubuntu-latest
           - os: windows-latest
-            artifact_name: uploader.exe
+            artifact_name: uploader
           #- os: macos-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
+      # Install PyInstaller
+      - run: pip install PyInstaller
       # Runs a single command using the runners shell
       - name: Buld for Windows
         if: matrix.os == 'windows-latest'
-        run: pyinstaller run.py --onefile
+        run: pyinstaller run.py --onefile -n ${{ matrix.artifact_name }}
         
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/${{ matrix.artifact_name }}
+          file: dist/${{ matrix.artifact_name }}.exe
           asset_name: ${{ matrix.asset_name }}
           tag: ${{ github.ref }}
         
