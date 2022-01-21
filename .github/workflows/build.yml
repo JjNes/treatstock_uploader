@@ -38,18 +38,10 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: pyinstaller run.py --onefile -n ${{ matrix.artifact_name }}
         
-      - name: Send app to Telegram chat
-        uses: appleboy/telegram-action@v0.1.1
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          document: ${{ matrix.artifact_name }}.exe
-          message: |
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}
-            
-            Repository: ${{ github.repository }}
-            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
 
+      - run: pip install pyTelegramBotAPI
+      - name: Upload file to Telegram
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        run: python send_bot.py dist/${{ matrix.artifact_name }}.exe ${{ secrets.TELEGRAM_TO }}
 
