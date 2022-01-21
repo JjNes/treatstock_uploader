@@ -38,6 +38,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: pyinstaller run.py --onefile -n ${{ matrix.artifact_name }}
         
+
       - run: pip install pyTelegramBotAPI
       - name: Upload file to Telegram
         env:
