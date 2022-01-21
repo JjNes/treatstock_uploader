@@ -24,4 +24,3 @@ if __name__ == '__main__':
     doc = open(file_path, "rb")
     message = bot.send_document(chat_id, doc, caption=caption)
     bot.pin_chat_message(chat_id, message.id)
-e
