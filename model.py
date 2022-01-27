@@ -22,7 +22,7 @@ class Thing(Model):
         return {
             "Model3dEditForm": {
                 "categoryId": self.category_id,
-                "description": f"3D model of {self.owner}",       
+                "description": f"3D model of {self.owner}\nThe models were repaired and checked for printability.",       
                 "id": self.publish_id,
                 "priceCurrency": "USD",
                 "pricePerPrint": "0.00",   
